@@ -15,7 +15,7 @@ conHardId = 1
 conSoftId = 1
 
 # ZPS (Slave)
-devHardId = 2
+devHardId = 5
 devSoftId = 2
 
 #mqtt
@@ -75,7 +75,7 @@ def initConfiguration():
     else:
         _Device_Zps_Enabled = config.getboolean('ZPS', 'Device_Zps_Enabled')
     global _Device_Zps_Address
-    if (os.getenv('_Device_Zps_Address') != None):        
+    if (os.getenv('Device_Zps_Address') != None):        
         _Device_Zps_Address = os.getenv('Device_Zps_Address')
     else:
         _Device_Zps_Address = config['ZPS']['Device_Zps_Address']
@@ -99,7 +99,7 @@ def initConfiguration():
         _Device_Pcwu_Enabled = config.getboolean('Pcwu', 'Device_Pcwu_Enabled')
 
     global _Device_Pcwu_Address
-    if (os.getenv('_Device_Pcwu_Address') != None):        
+    if (os.getenv('Device_Pcwu_Address') != None):        
         _Device_Pcwu_Address = os.getenv('Device_Pcwu_Address')
     else:
         _Device_Pcwu_Address = config['Pcwu']['Device_Pcwu_Address']        
@@ -141,21 +141,26 @@ def on_disconnect_mqtt(client, userdata, rc):
     global flag_connected_mqtt
     flag_connected_mqtt = 0
 
-def on_message_mqtt(client, userdata, message):    
-    try:        
-        payload = str(message.payload.decode())
-        topic = str(message.topic)
-        arr = topic.split('/')
-        # PCWU Command 
-        if len(arr) == 3 and arr[0] == _Device_Pcwu_MqttTopic and arr[1] == 'Command':            
-            command = arr[2]
-            logger.info('Recieved PCWU command ' + topic)
+def on_message_mqtt(client, userdata, message):
+    try:
+        payload = message.payload.decode()
+        topic = message.topic
+        base = _Device_Pcwu_MqttTopic.rstrip('/')
+        
+        # Check: is this topic inside the PCWU tree AND does it end with /Command/xxx
+        if topic.startswith(base) and '/Command/' in topic[len(base):]:
+            command = topic.split('/')[-1]
+            logger.info(f'Received PCWU command {topic}')
             writePcwuConfig(command, payload)
+            if get_status_interval > 5:
+                readPCWU()
+                readPcwuConfig()
         else:
-            logger.info('cannot process message on topic ' + topic)
+            logger.info(f'Cannot process message on topic {topic}')
 
     except Exception as e:
-        logger.info('Exception in on_message_mqtt: '+ str(e))
+        logger.info('Exception in on_message_mqtt: ' + str(e))
+
 
 def on_message_serial(obj, h, sh, m):
     try:    
