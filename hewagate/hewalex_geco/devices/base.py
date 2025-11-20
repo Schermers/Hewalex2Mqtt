@@ -8,8 +8,8 @@ from ..crc import *
 
 class BaseDevice:
     def __init__(self, conHardId, conSoftId, devHardId, devSoftId, onMessage=None):
-        self.conHardId = conHardId  # G-426 controller - physical address
-        self.conSoftId = conSoftId  # G-426 controller - logical address
+        self.conHardId = conHardId  # Geco controller - physical address
+        self.conSoftId = conSoftId  # Geco controller - logical address
         self.devHardId = devHardId  # Hewalex device - physical address
         self.devSoftId = devSoftId  # Hewalex device - logical address
         self.onMessage = onMessage  # Callback - onMessage(obj, h, sh, m)
@@ -41,6 +41,9 @@ class BaseDevice:
             raise Exception("Invalid To Hard Address: " + str(h["To"]))
         if h["To"] == h["From"]:
             raise Exception("From and To Hard Address Equal")
+
+    def getByte(self, w):
+        return int(w[0])
 
     def getWord(self, w):
         return (w[1] << 8) | w[0]
@@ -91,6 +94,14 @@ class BaseDevice:
                 ret[name] = bool(val & 1)
             val = val >> 1
 
+    def getRegisterByNumber(self, regnum):
+        return self.registers.get(regnum, None)
+
+    def getRegisterByName(self, regname):
+        for regnum, reg in self.registers.items():
+            if reg['name'] == regname:
+                return regnum, reg
+
     def parseRegisters(self, m, regstart, reglen, unknown=False):
         ret = {}
 
@@ -99,7 +110,7 @@ class BaseDevice:
             if skip > 0:
                 skip = skip - 1
                 continue
-            reg = self.registers.get(regnum, None)
+            reg = self.getRegisterByNumber(regnum)
             adr = regnum - regstart
             if reg:
                 val = None
@@ -135,7 +146,12 @@ class BaseDevice:
                     skip = 1
                 ret[reg['name']] = val
             elif unknown:
-                ret["Reg%d" % regnum] = self.getWord(m[adr:])
+                val = m[adr:]
+                if len(val) > 1:
+                    val = self.getWord(val)
+                else:
+                    val = self.getByte(val)
+                ret["Reg%d" % regnum] = val
 
         return ret
 
@@ -161,7 +177,9 @@ class BaseDevice:
             }
         })
 
-    def processMessage(self, m, ignoreTooShort):
+    def processMessage(self, m, ignoreTooShort, onMessage=None):
+        if onMessage is None:
+            onMessage = self.onMessage
         h = self.parseHardHeader(m)
         self.validateHardHeader(h)
         ml = h["Payload"]
@@ -169,15 +187,15 @@ class BaseDevice:
             return m
         sh = self.parseSoftHeader(h, m[8:ml+8])
         self.validateSoftHeader(h, sh)
-        if self.onMessage:
-            self.onMessage(self, h, sh, m)
+        if onMessage:
+            onMessage(self, h, sh, m)
         return m[ml+8:]
 
-    def processAllMessages(self, m, returnRemainingBytes=False):
+    def processAllMessages(self, m, returnRemainingBytes=False, onMessage=None):
         minLen = 8 if returnRemainingBytes else 0
         prevLen = len(m)
         while prevLen > minLen:
-            m = self.processMessage(m, returnRemainingBytes)
+            m = self.processMessage(m, ignoreTooShort=returnRemainingBytes, onMessage=onMessage)
             if len(m) == prevLen:
                 if returnRemainingBytes:
                     return m
@@ -195,7 +213,7 @@ class BaseDevice:
     # 5. The device requests to read 4 bytes starting from address 252.
     # 6. The controller responds and returns 4 bytes. By default they are: 10000000 and they mean that the controller is working normally, there are no changes. The value 08000000 means that the controller is turned off. However, the value 11000000 means that the user has changed a parameter in the menu, at this point the communication scheme is different, described in the docs.
     #
-    def eavesDrop(self, ser, numCycles=None):
+    def eavesDrop(self, ser, numCycles=None, onMessage=None):
         # window size and time (based on 140ms cycle and 360ms wait)
         winSize = 1000
         winTime = 0.4
@@ -227,9 +245,11 @@ class BaseDevice:
             m = ser.read(winSize)
 
             # process
-            self.processAllMessages(s + m)
+            self.processAllMessages(s + m, onMessage=onMessage)
 
     def createReadRegistersMessage(self, start, num):
+        if isinstance(start, str):
+            start = self.getRegisterByName(start)[0]
         header = [0x69, self.devHardId, self.conHardId, 0x84, 0, 0]
         payload = [(self.devSoftId & 0xff), ((self.devSoftId >> 8) & 0xff), (self.conSoftId & 0xff), ((self.conSoftId >> 8) & 0xff), 0x40, 0x80, 0, num & 0xff, start & 0xff, (start >> 8) & 0xff]
         calcCrc16 = crc16(payload)
@@ -240,9 +260,14 @@ class BaseDevice:
         header.append(calcCrc8)
         return bytearray(header + payload)
 
-    def createWriteRegisterMessage(self, reg, val):
+    def createWriteRegistersMessage(self, start, num, values):
+        if isinstance(start, str):
+            start = self.getRegisterByName(start)[0]
         header = [0x69, self.devHardId, self.conHardId, 0x84, 0, 0]
-        payload = [(self.devSoftId & 0xff), ((self.devSoftId >> 8) & 0xff), (self.conSoftId & 0xff), ((self.conSoftId >> 8) & 0xff), 0x60, 0x80, 0, 2, reg & 0xff, (reg >> 8) & 0xff, val & 0xff, (val >> 8) & 0xff]
+        payload = [(self.devSoftId & 0xff), ((self.devSoftId >> 8) & 0xff), (self.conSoftId & 0xff), ((self.conSoftId >> 8) & 0xff), 0x60, 0x80, 0, num & 0xff, start & 0xff, (start >> 8) & 0xff]
+        for val in values:
+            payload.append(val & 0xff)
+            payload.append((val >> 8) & 0xff)
         calcCrc16 = crc16(payload)
         payload.append((calcCrc16 >> 8) & 0xff)
         payload.append(calcCrc16 & 0xff)
@@ -251,32 +276,46 @@ class BaseDevice:
         header.append(calcCrc8)
         return bytearray(header + payload)
 
-    def readRegisters(self, ser, start, num):
+    def createWriteRegisterMessage(self, reg, val):
+        return self.createWriteRegistersMessage(reg, 2, [val])
+
+    def readRegisters(self, ser, start, num, onMessage=None):
         m = self.createReadRegistersMessage(start, num)
         ser.flushInput()
         ser.timeout = 0.4
         ser.write(m)
         r = ser.read(1000)
-        return self.processAllMessages(r)
+        return self.processAllMessages(r, onMessage=onMessage)
 
-    def readStatusRegisters(self, ser):
+    def readStatusRegisters(self, ser, onMessage=None):
         start = self.REG_STATUS_START
-        return self.readRegisters(ser, start, self.REG_CONFIG_START - start)
+        return self.readRegisters(ser, start, self.REG_CONFIG_START - start, onMessage=onMessage)
 
-    def readConfigRegisters(self, ser):
+    def readConfigRegisters(self, ser, onMessage=None):
         start = self.REG_CONFIG_START
         while start < self.REG_MAX_ADR:
             num = min(self.REG_MAX_ADR + 2 - start, self.REG_MAX_NUM)
-            self.readRegisters(ser, start, num)
+            self.readRegisters(ser, start, num, onMessage=onMessage)
             start = start + num
 
-    def writeRegister(self, ser, reg, val):
+    def readRegister(self, ser, reg, onMessage=None):
+        return self.readRegisters(ser, reg, 2, onMessage=onMessage)
+
+    def writeRegisters(self, ser, start, num, values, onMessage=None):
+        m = self.createWriteRegistersMessage(start, num, values)
+        ser.flushInput()
+        ser.timeout = 0.4
+        ser.write(m)
+        r = ser.read(1000)
+        return self.processAllMessages(r, onMessage=onMessage)
+
+    def writeRegister(self, ser, reg, val, onMessage=None):
         m = self.createWriteRegisterMessage(reg, val)
         ser.flushInput()
         ser.timeout = 0.4
         ser.write(m)
         r = ser.read(1000)
-        return self.processAllMessages(r)
+        return self.processAllMessages(r, onMessage=onMessage)
 
     def write(self, ser, registername, val):
         regnum = 0        
@@ -285,14 +324,14 @@ class BaseDevice:
             if v['name'] == registername:
                 regnum = k
                 break      
-        reg = self.registers.get(regnum, None)
+        reg = self.getRegisterByNumber(regnum)
         if reg:
             val = self.parseRegisterValue(reg, val)
             if val is not None:
                 #print('self.writeRegister(ser, ' + str(regnum) + ', '+ str(val) + ')')
                 return self.writeRegister(ser, regnum, val)
         return None
-        
+
     def parseRegisterValue(self, reg, val):
         if val:                
             if reg['type'] == 'date':
@@ -322,15 +361,32 @@ class BaseDevice:
                 val = None
             elif reg['type'] == 'tprg':
                 val = None
-            if reg['options'] and val not in reg['options']:
-                print ('invalid option ' + str(val))
+            options = reg.get('options')
+            if options and val not in options:
+                print('invalid option ' + str(val))
                 val = None
             return val
+
+# Interface private helper functions
+####################################
+
+    def _setTemp(self, ser, regName, temp, base):
+        return self.writeRegister(ser, regName, int(temp * base))
+
 
 # Interface to implement in child classes
 #########################################
 
     # Registers are divided in read-only status registers and read/write config registers
+    #
+    # Date and time information seems to be stored in status registers which makes it
+    # impossible to update those through this library. If you're wondering how the
+    # controller (display) connected to a heatpump does this, then remember the
+    # constant communication cycle between display and heatpump. On update of date
+    # and time the display tells the heatpump to _read_ the contents of the associated
+    # registers. The heatpump does this and then _internally_ updates its own date/time
+    # with the values received.
+    #
 
     # The lowest readable register always seems to be 100
     REG_MIN_ADR = 100
@@ -350,15 +406,15 @@ class BaseDevice:
     registers = {
 #
 #        # Status registers
-#        120: { 'type': 'date', 'name': 'date' },                        # Date
-#        124: { 'type': 'time', 'name': 'time' },                        # Time
-#        128: { 'type': 'te10', 'name': 'T1' },                          # T1
-#        130: { 'type': 'te10', 'name': 'T2' },                          # T2
-#        132: { 'type': 'te10', 'name': 'T3' },                          # T3
+#        120: { 'type': 'date', 'name': 'date',                          'desc': 'Date' },
+#        124: { 'type': 'time', 'name': 'time',                          'desc': 'Time' },
+#        128: { 'type': 'te10', 'name': 'T1',                            'desc': 'T1 (Water temp)' },
+#        130: { 'type': 'te10', 'name': 'T2',                            'desc': 'T2 (Collectors temp)' },
+#        132: { 'type': 'te10', 'name': 'T3',                            'desc': 'T3 (Ambient temp)' },
 #        ...
 #
 #        # Config registers
-#        XXX: { 'type': 'word', 'name': 'InstallationScheme' },          # Installation Scheme
+#        300: { 'type': 'word', 'name': 'InstallationScheme',            'desc': 'Installation Scheme (1-10)' },
 #        ...
 #
     }
