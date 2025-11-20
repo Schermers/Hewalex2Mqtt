@@ -8,13 +8,13 @@ import logging
 import sys
 
 # polling interval
-get_status_interval = 30.0
+default_update_interval = 30.0
 
 # Controller (Master)
 conHardId = 1
 conSoftId = 1
 
-# ZPS (Slave)
+# Controller (Slave)
 devHardId = 5
 devSoftId = 2
 
@@ -40,7 +40,7 @@ def initConfiguration():
     config_file = os.path.join(os.path.dirname(__file__), 'hewalex2mqttconfig.ini')
     config = configparser.ConfigParser()
     config.read(config_file)
-    # Mqtt
+    # Mqtt variables
     global _MQTT_ip
     if (os.getenv('MQTT_ip') != None):        
         _MQTT_ip = os.getenv('MQTT_ip')
@@ -67,7 +67,17 @@ def initConfiguration():
     else:
         _MQTT_pass = config['MQTT']['MQTT_pass']
     
-    
+    # Hewalex2Mqtt variables
+    global _Update_Interval
+    if (os.getenv('Update_Interval') != None):        
+        _Update_Interval = float(os.getenv('Update_Interval'))
+    else:
+        if (config['Hewalex2Mqtt']['Update_Interval']):
+            _Update_Interval = float(config['Hewalex2Mqtt']['Update_Interval'])
+        else:
+            _Update_Interval = float(default_update_interval)
+    logger.info('Update Interval set to ' + str(_Update_Interval) + ' seconds')
+
     # ZPS Device
     global _Device_Zps_Enabled
     if (os.getenv('Device_Zps_Enabled') != None):        
@@ -152,7 +162,7 @@ def on_message_mqtt(client, userdata, message):
             command = topic.split('/')[-1]
             logger.info(f'Received PCWU command {topic}')
             writePcwuConfig(command, payload)
-            if get_status_interval > 5:
+            if _Update_Interval > 5:
                 readPCWU()
                 readPcwuConfig()
         else:
@@ -190,7 +200,7 @@ def on_message_serial(obj, h, sh, m):
 def device_readregisters_enqueue():
     """Get device status every x seconds"""
     logger.info('Get device status')
-    threading.Timer(get_status_interval, device_readregisters_enqueue).start()
+    threading.Timer(_Update_Interval, device_readregisters_enqueue).start()
     if _Device_Zps_Enabled:        
         readZPS()
         #readZPSConfig() dont care fot this ona ATM
