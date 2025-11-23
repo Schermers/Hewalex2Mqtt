@@ -38,6 +38,11 @@ This is basically a serial port. This script uses a 'serial for url' connection.
 
 You can buy a (cheap) wifi 2 rs485 or ethernet 2 rs485 device wich you attach to the rs485 port you want to interface with. And you need a piece of wire with 4 strands.
 
+2025-11-23 - I use a WaveShare **RS485-to-PoE Ethernet** adapter connected to the Hewalex with the configuration shown below.  
+These settings work reliably for me:
+
+![WaveShare configuration](media/WaveShare_settings.png "WaveShare configuration")
+
 ### Heat pumps (PCWU) setup
 
 Remove the plastic case and open up the "fuse box". In here you will find a free rs485 connector. Remove it and screw in a 4 strand wire. Connect the wire to the rs485wifi device.
@@ -114,7 +119,7 @@ You can copy the files of [`homeassistant/configs/mqtt`](homeassistant/configs/m
 
 ### Docker
 A pre made docker image is available at https://hub.docker.com/r/chibald/hewalex2mqtt. This only works on ARM, so if you need something on x86, please use the dockerfile like below docker-compose example.
-
+Hereby the docker-compose example: [`docker/docker-compose.yml`](docker/docker-compose.yml)
 ```
 services:
   hewalex2mqtt:
@@ -130,7 +135,7 @@ services:
       - /hewagate:/hewagate
 ```
 
-## Docker variable file '.env.hewalex2mqtt'
+## Docker variable file '[`docker/.env.hewalex2mqtt`](docker/.env.hewalex2mqtt)'
 ```
 MQTT_ip=192.168.1.6
 MQTT_port=1883
