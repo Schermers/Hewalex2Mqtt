@@ -1,4 +1,4 @@
-- name: Tap Water Sensor
+- name: Tap Water Control Sensor
 # This parameter decides about the location of control for heated up utility
 # water temperature. Changing temperature sensor (T2 or T3) somehow
 # allows controlling the HUW volume (T3 is installed higher, therefore water in
@@ -38,7 +38,7 @@
     {% endif %}
   icon: mdi:thermometer-water
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
 - name: Fan Operation Mode
@@ -83,7 +83,7 @@
     {% endif %}
   icon: mdi:fan-clock
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
 - name: Expansion Valve Operation Mode
@@ -111,10 +111,10 @@
        None
     {% endif %}
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
-- name: Circulation Pump Operation Mode
+- name: Tap Water Circulation Pump Operation Mode
 # This parameter allows setting circulating pump operation so as to make it
 # work in compliance with heat pump (that is only in heating mode), or
 # continuous operation (e.g. the system venting).
@@ -142,10 +142,10 @@
        None
     {% endif %}
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
-- name: Water Pump Operation Mode
+- name: Heat Pump Circulation Pump Operation Mode
   command_topic: heatpump/hewalex/Command/WaterPumpOperationMode
   state_topic: heatpump/hewalex/WaterPumpOperationMode
   unique_id: heatpump_hewalex_waterpumpoperationmode
@@ -170,6 +170,6 @@
     {% endif %}
   icon: mdi:water-pump
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex

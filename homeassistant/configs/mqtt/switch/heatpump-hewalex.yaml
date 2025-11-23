@@ -1,48 +1,48 @@
-- name: "Heatpump Power"
-  command_topic: "heatpump/hewalex/Command/HeatPumpEnabled"
-  state_topic: "heatpump/hewalex/HeatPumpEnabled"
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
-  unique_id: hewalex_heatpump_on_switch
+- name: Enable Heatpump
+  command_topic: heatpump/hewalex/Command/HeatPumpEnabled
+  state_topic: heatpump/hewalex/HeatPumpEnabled
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
+  unique_id: hewalex_heatpump_heatpumpenabled
   icon: mdi:heat-pump
   device:
     identifiers:
-      - "heatpump_hewalex"
-    name: "Hewalex Heatpump"
-- name: "External controller"
-  command_topic: "heatpump/hewalex/Command/ExtControllerHPOFF"
-  state_topic: "heatpump/hewalex/ExtControllerHPOFF"
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
-  unique_id: hewalex_heatpump_extcontrol_switch
+      - heatpump_hewalex
+    name: Hewalex Heat Pump
+- name: Enable External Controller
+  command_topic: heatpump/hewalex/Command/ExtControllerHPOFF
+  state_topic: heatpump/hewalex/ExtControllerHPOFF
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
+  unique_id: hewalex_heatpump_extcontrollerhpoff
   icon: mdi:power-off
   device:
     identifiers:
-      - "heatpump_hewalex"
-    name: "Hewalex Heatpump"
-- name: "Anti-freezing"
+      - heatpump_hewalex
+    name: Hewalex Heat Pump
+- name: Anti-freezing
 # It is a protection against the occurrence of sub-zero temperature in room,
 # where heat pump is installed. In case of too low temperature indicated by
 # the T6 sensor, circulating pump will switch on and start pumping water
 # between the tank and heat pump, so as to avoid pipeline or condenser
 # defrosting.
-  command_topic: "heatpump/hewalex/Command/AntiFreezingEnabled"
-  state_topic: "heatpump/hewalex/AntiFreezingEnabled"
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
-  unique_id: hewalex_heatpump_antifreezing_switch
+  command_topic: heatpump/hewalex/Command/AntiFreezingEnabled
+  state_topic: heatpump/hewalex/AntiFreezingEnabled
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
+  unique_id: hewalex_heatpump_antifreezingenabled
   icon: mdi:snowflake-off
   device:
     identifiers:
-      - "heatpump_hewalex"
-    name: "Hewalex Heatpump"
-- name: Heater E Enabled
+      - heatpump_hewalex
+    name: Hewalex Heat Pump
+- name: Electric Heater (E)
 # External control unit
 # Depending on the selected diagram, we are able to define, which
 # appliances are to be operated by the external control unit. For
@@ -51,132 +51,132 @@
 # controller.
   command_topic: heatpump/hewalex/Command/HeaterEEnabled
   state_topic: heatpump/hewalex/HeaterEEnabled
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
   unique_id: heatpump_hewalex_heatereenabled
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
-- name: Heater E blocked when HP ON
+- name: Block Electric Heater (E) When Heat Pump Is On
   command_topic: heatpump/hewalex/Command/HeaterEBlocked
   state_topic: heatpump/hewalex/HeaterEBlocked
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
   unique_id: heatpump_hewalex_heatereblocked
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
-- name: Heater P Enabled
+- name: Electric Heater (P)
   command_topic: heatpump/hewalex/Command/HeaterPEnabled
   state_topic: heatpump/hewalex/HeaterPEnabled
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
   unique_id: heatpump_hewalex_heaterpenabled
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
-- name: Heater P blocked when HP ON?
+- name: Block Electric Heater (P) When Heat Pump Is On
   command_topic: heatpump/hewalex/Command/HeaterPBlocked
   state_topic: heatpump/hewalex/HeaterPBlocked
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
   unique_id: heatpump_hewalex_heaterpblocked
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
 - name: Boiler Pump Priority
   command_topic: heatpump/hewalex/Command/BoilerPumpPriority
   state_topic: heatpump/hewalex/BoilerPumpPriority
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
   unique_id: heatpump_hewalex_boilerpumppriority
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
-- name: Anti-Legionella Enabled
+- name: Anti-Legionella
   command_topic: heatpump/hewalex/Command/AntiLegionellaEnabled
   state_topic: heatpump/hewalex/AntiLegionellaEnabled
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
   unique_id: heatpump_hewalex_antilegionellaenabled
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
-- name: Anti-Legionella Use Heater E
+- name: Use Electric Heater (E) for Anti-Legionella
   command_topic: heatpump/hewalex/Command/AntiLegionellaUseHeaterE
   state_topic: heatpump/hewalex/AntiLegionellaUseHeaterE
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
   unique_id: heatpump_hewalex_antilegionellauseheatere
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
-- name: Anti-Legionella Use Heater P
+- name: Use Electric Heater (P) for Anti-Legionella
   command_topic: heatpump/hewalex/Command/AntiLegionellaUseHeaterP
   state_topic: heatpump/hewalex/AntiLegionellaUseHeaterP
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
   unique_id: heatpump_hewalex_antilegionellauseheaterp
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
-- name: External Controller Heater E OFF
+- name: Enable External Control for Electric Heater (E)
   command_topic: heatpump/hewalex/Command/ExtControllerHeaterEOFF
   state_topic: heatpump/hewalex/ExtControllerHeaterEOFF
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
   unique_id: heatpump_hewalex_extcontrollerheatereoff
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
-- name: External Controller Pump F OFF
+- name: Enable External Control for Solid Fuel Pump
   command_topic: heatpump/hewalex/Command/ExtControllerPumpFOFF
   state_topic: heatpump/hewalex/ExtControllerPumpFOFF
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
   unique_id: heatpump_hewalex_extcontrollerpumpfoff
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
-- name: External Controller Heater P OFF
+- name: Enable External Control for Electric Heater (P)
   command_topic: heatpump/hewalex/Command/ExtControllerHeaterPOFF
   state_topic: heatpump/hewalex/ExtControllerHeaterPOFF
-  payload_on: "True"
-  payload_off: "False"
-  state_on: "True"
-  state_off: "False"
+  payload_on: True
+  payload_off: False
+  state_on: True
+  state_off: False
   unique_id: heatpump_hewalex_extcontrollerheaterpoff
   device:
-    name: Hewalex Heatpump
+    name: Hewalex Heat Pump
     identifiers:
     - heatpump_hewalex
