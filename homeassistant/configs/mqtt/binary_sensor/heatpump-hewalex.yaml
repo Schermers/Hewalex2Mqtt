@@ -1,0 +1,33 @@
+- name: "Manual mode"
+# Otherwise called the relays test. Depending on the selected diagram, we are able to activate successively all devices
+# operated by the controller in order to check their correct operation. After exit to the main menu all devices return to their
+# standard settings.
+  state_topic: "heatpump/hewalex/IsManual"
+  payload_on: "True"
+  payload_off: "False"
+  unique_id: hewalex_heatpump_manual_bool
+  icon: mdi:refresh-auto
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Hewalex Heatpump"
+- name: "Compressor"
+  state_topic: "heatpump/hewalex/CompressorON"
+  payload_on: "True"
+  payload_off: "False"
+  unique_id: hewalex_heatpump_compressoron
+  icon: mdi:heating-coil
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Hewalex Heatpump"
+- name: "e-Heater"
+  state_topic: "heatpump/hewalex/HeaterEON"
+  payload_on: "True"
+  payload_off: "False"
+  unique_id: hewalex_heatpump_heatereon
+  icon: mdi:heat-wave
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Hewalex Heatpump"

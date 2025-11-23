@@ -1,0 +1,274 @@
+- name: "Heatpump Set Hysteresis"
+# Heat pump start-up hysteresis is one of additional parameters appearing
+# after logging in at service level. It is temperature drop in relation to preset
+# HUW temperature for heat pump, which restarts the unit. For example, if
+# required water temperature is 50°C and hysteresis is 5°C, then at the
+# moment when temperature sensor readout shows 45°C, the pump will
+# start working until the temperature of 50°C is reached. Setting change is
+# possible within 2 to 10°C, however it must be done with care so as to
+# ensure comfort of use and correct unit operation.
+  command_topic: "heatpump/hewalex/Command/TapWaterHysteresis"
+  state_topic: "heatpump/hewalex/TapWaterHysteresis"
+  unit_of_measurement: "°C"
+  min: 2
+  max: 10
+  unique_id: hewalex_heatpump_hysteresis_set
+  device_class: temperature
+  icon: mdi:thermometer
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: "Heatpump Set Tapwater Temp"
+  command_topic: "heatpump/hewalex/Command/TapWaterTemp"
+  state_topic: "heatpump/hewalex/TapWaterTemp"
+  unit_of_measurement: "°C"
+  max: 60
+  min: 40
+  unique_id: hewalex_heatpump_tapwater_set
+  device_class: temperature
+  icon: mdi:thermometer
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: Ambient Min Temp (Minimum T1 temperature to turn heat pump on)
+  command_topic: heatpump/hewalex/Command/AmbientMinTemp
+  state_topic: heatpump/hewalex/AmbientMinTemp
+  unit_of_measurement: °C
+  min: -10
+  max: 10
+  unique_id: heatpump_hewalex_ambientmintemp_set
+  device_class: temperature
+  icon: mdi:thermometer
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Defrosting cycle start-up delay
+# Defrosting process functioning has been described in chapter
+# Evaporator defrosting mode (Manual: installation-service part).
+# Defrosting cycle start-up delay function allows setting time within
+# interval: 30-90min. If there is no delay, below temperature activating
+# defrosting heat pump would be continuously in defrosting mode.
+  command_topic: heatpump/hewalex/Command/DefrostingInterval
+  state_topic: heatpump/hewalex/DefrostingInterval
+  unit_of_measurement: min
+  unique_id: heatpump_hewalex_defrostinginterval_set
+  icon: mdi:restart
+  min: 30
+  max: 90
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Defrosting Start Temp
+# The temperature initiating defrosting indicates to heat pump
+# automatics that ice has appeared in the evaporator, which results in
+# worse heat reception by cooling medium. Defrosting will start only
+# when the following conditions are satisfied: evaporator temperature is
+# lower than temperature activating defrosting process, then after delay
+# time recheck whether the temperature in the evaporator is lower than
+# the temperature activating defrosting.
+  command_topic: heatpump/hewalex/Command/DefrostingStartTemp
+  state_topic: heatpump/hewalex/DefrostingStartTemp
+  unit_of_measurement: °C
+  min: -30
+  max: 0
+  unique_id: heatpump_hewalex_defrostingstarttemp_set
+  device_class: temperature
+  icon: mdi:snowflake-melt
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Defrosting Stop Temp
+# If temperature in the evaporator increases above the setting in this
+# parameter, defrosting will end and heat pump will return to normal
+# operation.
+  command_topic: heatpump/hewalex/Command/DefrostingStopTemp
+  state_topic: heatpump/hewalex/DefrostingStopTemp
+  unit_of_measurement: °C
+  min: 2
+  max: 30
+  unique_id: heatpump_hewalex_defrostingstoptemp_set
+  device_class: temperature
+  icon: mdi:snowflake-melt
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Defrosting Max Time (min)
+# Defrosting duration is the second parameter. Should it be exceeded,
+# the pump will also return to normal operation (it is enough if one of
+# the two conditions is satisfied).
+# IMPORTANT!
+# Modification of defrosting parameters by a person, who does not
+# know the problem of heat pumps operation very well, may result in
+# deteriorated unit operation efficiency
+  command_topic: heatpump/hewalex/Command/DefrostingMaxTime
+  state_topic: heatpump/hewalex/DefrostingMaxTime
+  unit_of_measurement: min
+  min: 1
+  max: 12
+  unique_id: heatpump_hewalex_defrostingmaxtime_set
+  icon: mdi:clock-end
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Expansion Valve Manual Step (300)
+  command_topic: heatpump/hewalex/Command/EVManualStep
+  state_topic: heatpump/hewalex/EVManualStep
+  min: 0
+  max: 500
+  unique_id: heatpump_hewalex_evmanualstep_set
+  icon: mdi:valve
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Expansion Valve Superheat Temp (1)
+  command_topic: heatpump/hewalex/Command/EVSuperheatTemp
+  state_topic: heatpump/hewalex/EVSuperheatTemp
+  min: 0
+  max: 100
+  unique_id: heatpump_hewalex_evsuperheattemp_set
+  icon: mdi:thermometer
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Expansion Valve Initial Step (200)
+  command_topic: heatpump/hewalex/Command/EVInitialStep
+  state_topic: heatpump/hewalex/EVInitialStep
+  min: 0
+  max: 500
+  unique_id: heatpump_hewalex_evinitialstep_set
+  icon: mdi:valve
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Expansion Valve Min Step (120)
+  command_topic: heatpump/hewalex/Command/EVMinStep
+  state_topic: heatpump/hewalex/EVMinStep
+  min: 0
+  max: 500
+  unique_id: heatpump_hewalex_evminstep_set
+  icon: mdi:valve
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Expansion Valve Defrosting Step (480)
+  command_topic: heatpump/hewalex/Command/EVDefrostingStep
+  state_topic: heatpump/hewalex/EVDefrostingStep
+  min: 0
+  max: 500
+  unique_id: heatpump_hewalex_evdefrostingstep_set
+  icon: mdi:thermometer
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Heater E water temp when HP ON (45.0)
+  command_topic: heatpump/hewalex/Command/HeaterEHPONTemp
+  state_topic: heatpump/hewalex/HeaterEHPONTemp
+  unit_of_measurement: °C
+  min: 30
+  max: 55
+  unique_id: heatpump_hewalex_heaterehpontemp_set
+  device_class: temperature
+  icon: mdi:thermometer
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Heater E water temp when HP OFF
+  command_topic: heatpump/hewalex/Command/HeaterEHPOFFTemp
+  state_topic: heatpump/hewalex/HeaterEHPOFFTemp
+  unit_of_measurement: °C
+  min: 30
+  max: 60
+  unique_id: heatpump_hewalex_heaterehpofftemp_set
+  device_class: temperature
+  icon: mdi:thermometer
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Heater P water temp when HP ON
+  command_topic: heatpump/hewalex/Command/HeaterPHPONTemp
+  state_topic: heatpump/hewalex/HeaterPHPONTemp
+  unit_of_measurement: °C
+  min: 30
+  max: 60
+  unique_id: heatpump_hewalex_heaterphpontemp_set
+  device_class: temperature
+  icon: mdi:thermometer
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Heater P water temp when HP OFF
+  command_topic: heatpump/hewalex/Command/HeaterPHPOFFTemp
+  state_topic: heatpump/hewalex/HeaterPHPOFFTemp
+  unit_of_measurement: °C
+  min: 30
+  max: 60
+  unique_id: heatpump_hewalex_heaterphpofftemp_set
+  device_class: temperature
+  icon: mdi:thermometer
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Circulation Pump Min Temp
+  command_topic: heatpump/hewalex/Command/CirculationPumpMinTemp
+  state_topic: heatpump/hewalex/CirculationPumpMinTemp
+  unit_of_measurement: °C
+  min: 20
+  max: 60
+  unique_id: heatpump_hewalex_circulationpumpmintemp_set
+  icon: mdi:thermometer
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Boiler Pump Max Temp
+  command_topic: heatpump/hewalex/Command/BoilerPumpMaxTemp
+  state_topic: heatpump/hewalex/BoilerPumpMaxTemp
+  unit_of_measurement: °C
+  min: 10
+  max: 85
+  unique_id: heatpump_hewalex_boilerpumpmaxtemp_set
+  icon: mdi:thermometer
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Boiler Pump Min Temp
+  command_topic: heatpump/hewalex/Command/BoilerPumpMinTemp
+  state_topic: heatpump/hewalex/BoilerPumpMinTemp
+  unit_of_measurement: °C
+  min: 30
+  max: 60
+  unique_id: heatpump_hewalex_boilerpumpmintemp_set
+  icon: mdi:thermometer
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Boiler Pump Hysteresis
+  command_topic: heatpump/hewalex/Command/BoilerPumpHysteresis
+  state_topic: heatpump/hewalex/BoilerPumpHysteresis
+  unit_of_measurement: °C
+  min: 5
+  max: 15
+  unique_id: heatpump_hewalex_boilerpumphysteresis_set
+  icon: mdi:thermometer
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex

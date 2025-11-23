@@ -1,0 +1,9 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+mqtt:
+  sensor: !include_dir_merge_list configs/mqtt/sensor/
+  binary_sensor: !include_dir_merge_list configs/mqtt/binary_sensor/
+  number: !include_dir_merge_list configs/mqtt/number/
+  select: !include_dir_merge_list configs/mqtt/select/
+  switch: !include_dir_merge_list configs/mqtt/switch/

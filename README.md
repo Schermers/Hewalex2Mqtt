@@ -17,6 +17,20 @@ Provides read and write access on mqtt topics. A typical use case is integration
 
 This script is based on a domoticz plugin. So if you use domoticz a ready made plugin is available at: https://github.com/mvdklip/Domoticz-Hewalex
 
+## About This Fork
+
+This project is a fork of [Chibald/Hewalex2Mqtt](https://github.com/Chibald/Hewalex2Mqtt) with several improvements:
+
+- **Updated topics** based on the additions from the Domoticz–Hewalex project.  
+- **Home Assistant YAML files** added to map MQTT topics to sensors  
+  (inspired by [gvamero/Hewalex2Mqtt](https://github.com/gvamero/Hewalex2Mqtt)).  
+- **Restructured folder layout** for clearer organization and separation of Home Assistant sensor files.  
+- **Improved Docker Compose example** to make it ready to use out of the box.  
+- **Configurable refresh rate** added to the configuration file.  
+- **Fixed environment variable issues.**  
+- **Updated internal checks** that were breaking after introducing an additional MQTT subtopic.
+
+
 ## Hardware Prerequisites
 
 Hewalex devices are equipped with empty RS485 connectors. 
@@ -29,10 +43,14 @@ You can buy a (cheap) wifi 2 rs485 or ethernet 2 rs485 device wich you attach to
 Remove the plastic case and open up the "fuse box". In here you will find a free rs485 connector. Remove it and screw in a 4 strand wire. Connect the wire to the rs485wifi device.
 Make sure you connect them correctly. It is wise to measure ac and grnd to be sure!
 
-In the controller, navigate to rs485 settings. Change baud rate to 38500, Actual address to 2 and Logic address to 2.
+In the controller, navigate to rs485 settings. Change baud rate to 38400, Actual address to 2 and Logic address to 2.
 
 Setup the rs485-to-wifi device. Make sure baud settings match above settings.
 It is probably wise to assign static ip-address. Take note of this.
+
+## devHardId
+On your existing controller, verify the hardware and software IDs required for the setup. The integration won’t work if these values are wrong.
+In my case, the system only came online after correcting devHardId to 5. For most users this value is typically 2, but don’t assume—check your own device and set it accordingly.
 
 ### Solar pumps (ZPS) setup
 
@@ -57,7 +75,7 @@ just run the python script hewalex2mqtt.py, or use the docker image.
 All parameters are listed in the .ini file.
 Modify them according to your needs when you are not using the pre-made docker image.
 
-When you are using docker, make sure to set the environment variables. Or use the provided docker-compose and modify that accoriding to your setup.
+When you are using docker, make sure to set the environment variables. Or use the provided docker-compose and modify that according to your setup.
 
 
 **MQTT**
@@ -68,7 +86,7 @@ When you are using docker, make sure to set the environment variables. Or use th
 | MQTT_authentication | True
 | MQTT_user | 
 | MQTT_pass | 
-| MQTT_GatewayDevice_Topic | HewaGate
+| MQTT_GatewayDevice_Topic | heatpump/hewalex
 
 **ZPS**
 | Parameter | Value |
@@ -78,7 +96,6 @@ When you are using docker, make sure to set the environment variables. Or use th
 | Device_Zps_Port | Port of the RS485 to Wi-Fi device eg. 8899
 | Device_Zps_MqttTopic | SolarBoiler
 
-
 **Pcwu**
 | Parameter | Value |
 | ----------------------- | ----------- |
@@ -87,31 +104,48 @@ When you are using docker, make sure to set the environment variables. Or use th
 | Device_Pcwu_Port | Port of the RS485 to Wi-Fi device eg. 8899
 | Device_Pcwu_MqttTopic | Heatpump
 
+**Hewalex2Mqtt**
+| Parameter | Value |
+| ----------------------- | ----------- |
+| Update_Interval | 30.0
+
+### Home Assistant entities
+You can copy the files of [`homeassistant/configs/mqtt`](homeassistant/configs/mqtt/) to you setup. Make sure you import the files like the example shown in [`homeassistant/configuration.yaml`](homeassistant/configuration.yaml)
 
 ### Docker
-A pre made docker image is available at https://hub.docker.com/r/chibald/hewalex2mqtt. 
+A pre made docker image is available at https://hub.docker.com/r/chibald/hewalex2mqtt. This only works on ARM, so if you need something on x86, please use the dockerfile like below docker-compose example.
 
 ```
-version: '3.3'
 services:
-
   hewalex2mqtt:
-    image: chibald/hewalex2mqtt:latest
+    container_name: hewalex2mqtt
+    build:
+      context: /docker/hewalex2mqtt
+      network: host
+    restart: unless-stopped
     network_mode: host
-    environment:
-      MQTT_ip: 192.168.1.2
-      MQTT_port: 1883
-      MQTT_authentication: 'False'
-      MQTT_user: ''
-      MQTT_pass: ''
-      Device_Zps_Enabled: 'True'
-      Device_Zps_Address: '192.168.1.7'
-      Device_Zps_Port: 8899
-      Device_Zps_MqttTopic: 'SolarBoiler'
-      Device_Pcwu_Enabled: 'True'
-      Device_Pcwu_Address: '192.168.1.8'
-      Device_Pcwu_Port: '8899'
-      Device_Pcwu_MqttTopic: 'Heatpump'
+    env_file:
+      - '.env.hewalex2mqtt'
+    volumes:
+      - /hewagate:/hewagate
+```
+
+## Docker variable file '.env.hewalex2mqtt'
+```
+MQTT_ip=192.168.1.6
+MQTT_port=1883
+MQTT_authentication=True
+MQTT_user=hewalex
+MQTT_pass=IDontTellYou
+Device_Zps_Enabled=False
+Device_Zps_Address=192.168.1.7
+Device_Zps_Port=8899
+Device_Zps_MqttTopic=SolarBoiler
+Device_Pcwu_Enabled=True
+Device_Pcwu_Address=192.168.1.8
+Device_Pcwu_Port=8899
+Device_Pcwu_MqttTopic=heatpump/hewalex
+Update_Interval=30
 ```
 
 ## MQTT Topics
@@ -251,59 +285,138 @@ Command topics (marked command) allow the sending of commands to topics to contr
 | SolarBoiler/Command/Reg320 | word | Unknown register - value changes constantly
 
 ### Heat Pump
-| Topic | Type | Description | 
+| Topic | Type | Description |
 | ----------------------- | ----------- | ---------------------------
-| Heatpump/date | date | Date
-| Heatpump/time | time | Time
-| Heatpump/T1 | te10 | T1 (Ambient temp)
-| Heatpump/T2 | te10 | T2 (Tank bottom temp)
-| Heatpump/T3 | te10 | T3 (Tank top temp)
-| Heatpump/T6 | te10 | T6 (HP water inlet temp)
-| Heatpump/T7 | te10 | T7 (HP water outlet temp)
-| Heatpump/T8 | te10 | T8 (HP evaporator temp)
-| Heatpump/T9 | te10 | T9 (HP before compressor temp)
-| Heatpump/T10 | te10 | T10 (HP after compressor temp)
-| Heatpump/IsManual | bool | None
-| Heatpump/FanON | mask | None
-| Heatpump/CirculationPumpON | mask | None
-| Heatpump/HeatPumpON | mask | None
-| Heatpump/CompressorON | mask | None
-| Heatpump/HeaterEON | mask | None
-| Heatpump/EV1 | word | Expansion valve
-| Heatpump/WaitingStatus | word |  0 when available for operation, 2 when disabled through register 304
-| Heatpump/InstallationScheme | word | Installation Scheme (1-9)
-| Heatpump/HeatPumpEnabled | bool | Heat Pump Enabled (True/False)
-| Heatpump/Command/HeatPumpEnabled | bool | Heat Pump Enabled (True/False)
-| Heatpump/TapWaterSensor | word | Temp. sensor controlling heat pump operation [T2,T3,T7, factory setting T2]
-| Heatpump/Command/TapWaterSensor | word | Temp. sensor controlling heat pump operation [T2,T3,T7, factory setting T2]
-| Heatpump/TapWaterTemp | te10 | HUW temperature for heat pump [10-60°C, factory setting 50°C]
-| Heatpump/Command/TapWaterTemp | te10 | HUW temperature for heat pump [10-60°C, factory setting 50°C]
-| Heatpump/TapWaterHysteresis | te10 | Heat pump start-up hysteresis [2-10°C, factory setting 5°C]
-| Heatpump/Command/TapWaterHysteresis | te10 | Heat pump start-up hysteresis [2-10°C, factory setting 5°C]
-| Heatpump/AmbientMinTemp | te10 | Minimum ambient temperature (T1) [-10-10°C]
-| Heatpump/Command/AmbientMinTemp | te10 | Minimum ambient temperature (T1) [-10-10°C]
-| Heatpump/TimeProgramHPM-F | tprg | Time Program HP M-F (True/False per hour of the day)
-| Heatpump/Command/TimeProgramHPM-F | tprg | Time Program HP M-F (True/False per hour of the day)
-| Heatpump/TimeProgramHPSat | tprg | Time Program HP Sat (True/False per hour of the day)
-| Heatpump/Command/TimeProgramHPSat | tprg | Time Program HP Sat (True/False per hour of the day)
-| Heatpump/TimeProgramHPSun | tprg | Time Program HP Sun (True/False per hour of the day)
-| Heatpump/Command/TimeProgramHPSun | tprg | Time Program HP Sun (True/False per hour of the day)
-| Heatpump/AntiFreezingEnabled | bool | Function protecting against freezing [YES/NO], factory setting YES
-| Heatpump/Command/AntiFreezingEnabled | bool | Function protecting against freezing [YES/NO], factory setting YES
-| Heatpump/WaterPumpOperationMode | word | Water Pump Operation Mode (0=Continuous, 1=Synchronous)
-| Heatpump/Command/WaterPumpOperationMode | word | Water Pump Operation Mode (0=Continuous, 1=Synchronous)
-| Heatpump/FanOperationMode | word | Fan Operation Mode (0=Max, 1=Min, 2=Day/Night), factory MAX
-| Heatpump/Command/FanOperationMode | word | Fan Operation Mode (0=Max, 1=Min, 2=Day/Night), factory MAX
-| Heatpump/DefrostingInterval | word | Defrosting cycle start-up delay [30-90 min., factory setting 45 min.]
-| Heatpump/Command/DefrostingInterval | word | Defrosting cycle start-up delay [30-90 min., factory setting 45 min.]
-| Heatpump/DefrostingStartTemp | te10 | Temperature activating defrosting [-30 - 0°C, factory setting -7°C]
-| Heatpump/Command/DefrostingStartTemp | te10 | Temperature activating defrosting [-30 - 0°C, factory setting -7°C]
-| Heatpump/DefrostingStopTemp | te10 | Temperature finishing defrosting [2-30°C, factory setting 13°C]
-| Heatpump/Command/DefrostingStopTemp | te10 | Temperature finishing defrosting [2-30°C, factory setting 13°C]
-| Heatpump/DefrostingMaxTime | word | Maximum defrosting duration [1-12 min., factory setting 8 min.]
-| Heatpump/Command/DefrostingMaxTime | word | Maximum defrosting duration [1-12 min., factory setting 8 min.]
-| Heatpump/ExtControllerHPOFF | bool | Heat pump deactivation [YES/NO, factory setting YES]
-| Heatpump/Command/ExtControllerHPOFF | bool | Heat pump deactivation [YES/NO, factory setting YES]
+| heatpump/hewalex/date | date | Date
+| heatpump/hewalex/time | time | Time
+| heatpump/hewalex/T1 | te10 | T1 (Ambient temp)
+| heatpump/hewalex/T2 | te10 | T2 (Tank bottom temp)
+| heatpump/hewalex/T3 | te10 | T3 (Tank top temp)
+| heatpump/hewalex/T4 | te10 | T4 (Solid Fuel Boiler temp)
+| heatpump/hewalex/T5 | te10 | T5 (Void)
+| heatpump/hewalex/T6 | te10 | T6 (HP water inlet temp)
+| heatpump/hewalex/T7 | te10 | T7 (HP water outlet temp)
+| heatpump/hewalex/T8 | te10 | T8 (HP evaporator temp)
+| heatpump/hewalex/T9 | te10 | T9 (HP before compressor temp)
+| heatpump/hewalex/T10 | te10 | T10 (HP after compressor temp)
+| heatpump/hewalex/unknown5 | word | Unknown, observed values are 1 (krzysztof1111111111) and 3 (mvdklip)
+| heatpump/hewalex/unknown3 | word | Unknown, observed values are 49659, 49663 and 50175; probably a bitmask
+| heatpump/hewalex/IsManual | word | Unknown, 2 when controller on, 1 when controller off
+| heatpump/hewalex/FanON | mask | None
+| heatpump/hewalex/WaterPumpON | mask | None
+| heatpump/hewalex/HeatPumpON | mask | None
+| heatpump/hewalex/CompressorON | mask | None
+| heatpump/hewalex/HeaterEON | mask | None
+| heatpump/hewalex/EV1 | word | Expansion Valve 1 - Current opening (step value) of the expansion valve
+| heatpump/hewalex/WaitingStatus | word | 0 when available for operation, 2 when disabled through register 304, 64 when low COP, 32 when just stopped and waiting to be restarted
+| heatpump/hewalex/WaitingTimer | word | Timer counting down to 0 when just stopped and waiting to be available for operation again
+| heatpump/hewalex/unknown7 | word | Unknown, observed value is 0 and is possibly related to alarms
+| heatpump/hewalex/unknown8 | word | Unknown, observed value is 0
+| heatpump/hewalex/unknown9 | word | Unknown, observed value is 0
+| heatpump/hewalex/unknown10 | word | Unknown, observed value is 0
+| heatpump/hewalex/InstallationScheme | word | Installation Scheme (1-9)
+| heatpump/hewalex/HeatPumpEnabled | bool | Heat Pump Enabled (True/False)
+| heatpump/hewalex/Command/HeatPumpEnabled | bool | Heat Pump Enabled (True/False)
+| heatpump/hewalex/TapWaterSensor | word | Tap Water Sensor (0=T2, 1=T3, 2=T7)
+| heatpump/hewalex/Command/TapWaterSensor | word | Tap Water Sensor (0=T2, 1=T3, 2=T7)
+| heatpump/hewalex/TapWaterTemp | te10 | Tap Water Temp (Temperature at sensor above to turn heat pump off)
+| heatpump/hewalex/Command/TapWaterTemp | te10 | Tap Water Temp (Temperature at sensor above to turn heat pump off)
+| heatpump/hewalex/TapWaterHysteresis | te10 | Tap Water Hysteresis (Difference between sensor and value above to turn heat pump on)
+| heatpump/hewalex/Command/TapWaterHysteresis | te10 | Tap Water Hysteresis (Difference between sensor and value above to turn heat pump on)
+| heatpump/hewalex/AmbientMinTemp | te10 | Ambient Min Temp (Minimum T1 temperature to turn heat pump on)
+| heatpump/hewalex/Command/AmbientMinTemp | te10 | Ambient Min Temp (Minimum T1 temperature to turn heat pump on)
+| heatpump/hewalex/TimeProgramHPM-F | tprg | Time Program HP M-F (True/False per hour of the day)
+| heatpump/hewalex/Command/TimeProgramHPM-F | tprg | Time Program HP M-F (True/False per hour of the day)
+| heatpump/hewalex/TimeProgramHPSat | tprg | Time Program HP Sat (True/False per hour of the day)
+| heatpump/hewalex/Command/TimeProgramHPSat | tprg | Time Program HP Sat (True/False per hour of the day)
+| heatpump/hewalex/TimeProgramHPSun | tprg | Time Program HP Sun (True/False per hour of the day)
+| heatpump/hewalex/Command/TimeProgramHPSun | tprg | Time Program HP Sun (True/False per hour of the day)
+| heatpump/hewalex/AntiFreezingEnabled | bool | Anti Freezing Enabled (True/False)
+| heatpump/hewalex/Command/AntiFreezingEnabled | bool | Anti Freezing Enabled (True/False)
+| heatpump/hewalex/WaterPumpOperationMode | word | Water Pump Operation Mode (0=Continuous, 1=Synchronous)
+| heatpump/hewalex/Command/WaterPumpOperationMode | word | Water Pump Operation Mode (0=Continuous, 1=Synchronous)
+| heatpump/hewalex/FanOperationMode | word | Fan Operation Mode (0=Max, 1=Min, 2=Day/Night)
+| heatpump/hewalex/Command/FanOperationMode | word | Fan Operation Mode (0=Max, 1=Min, 2=Day/Night)
+| heatpump/hewalex/DefrostingInterval | word | Defrosting Interval (min)
+| heatpump/hewalex/Command/DefrostingInterval | word | Defrosting Interval (min)
+| heatpump/hewalex/DefrostingStartTemp | te10 | Defrosting Start Temp
+| heatpump/hewalex/Command/DefrostingStartTemp | te10 | Defrosting Start Temp
+| heatpump/hewalex/DefrostingStopTemp | te10 | Defrosting Stop Temp
+| heatpump/hewalex/Command/DefrostingStopTemp | te10 | Defrosting Stop Temp
+| heatpump/hewalex/DefrostingMaxTime | word | Defrosting Max Time (min)
+| heatpump/hewalex/Command/DefrostingMaxTime | word | Defrosting Max Time (min)
+| heatpump/hewalex/EVOperationMode | word | Expansion Valve Operation Mode (0=Auto, 1=Manual)
+| heatpump/hewalex/Command/EVOperationMode | word | Expansion Valve Operation Mode (0=Auto, 1=Manual)
+| heatpump/hewalex/EVManualStep | word | Expansion Valve Manual Step (300)
+| heatpump/hewalex/Command/EVManualStep | word | Expansion Valve Manual Step (300)
+| heatpump/hewalex/EVSuperheatTemp | te10 | Expansion Valve Superheat Temp (1)
+| heatpump/hewalex/Command/EVSuperheatTemp | te10 | Expansion Valve Superheat Temp (1)
+| heatpump/hewalex/EVInitialStep | word | Expansion Valve Initial Step (200)
+| heatpump/hewalex/Command/EVInitialStep | word | Expansion Valve Initial Step (200)
+| heatpump/hewalex/EVMinStep | word | Expansion Valve Min Step (120)
+| heatpump/hewalex/Command/EVMinStep | word | Expansion Valve Min Step (120)
+| heatpump/hewalex/EVDefrostingStep | word | Expansion Valve Defrosting Step (480)
+| heatpump/hewalex/Command/EVDefrostingStep | word | Expansion Valve Defrosting Step (480)
+| heatpump/hewalex/HeaterEEnabled | bool | Heater E Enabled (True/False)
+| heatpump/hewalex/Command/HeaterEEnabled | bool | Heater E Enabled (True/False)
+| heatpump/hewalex/HeaterEHPONTemp | te10 | Heater E water temp when HP ON (45.0)
+| heatpump/hewalex/Command/HeaterEHPONTemp | te10 | Heater E water temp when HP ON (45.0)
+| heatpump/hewalex/HeaterEHPOFFTemp | te10 | Heater E water temp when HP OFF (55.0)
+| heatpump/hewalex/Command/HeaterEHPOFFTemp | te10 | Heater E water temp when HP OFF (55.0)
+| heatpump/hewalex/HeaterEBlocked | bool | Heater E blocked when HP ON? (True/False)
+| heatpump/hewalex/Command/HeaterEBlocked | bool | Heater E blocked when HP ON? (True/False)
+| heatpump/hewalex/HeaterETimeProgramM-F | tprg | Heater E Time Program M-F (True/False per hour of the day)
+| heatpump/hewalex/Command/HeaterETimeProgramM-F | tprg | Heater E Time Program M-F (True/False per hour of the day)
+| heatpump/hewalex/HeaterETimeProgramSat | tprg | Heater E Time Program Sat (True/False per hour of the day)
+| heatpump/hewalex/Command/HeaterETimeProgramSat | tprg | Heater E Time Program Sat (True/False per hour of the day)
+| heatpump/hewalex/HeaterETimeProgramSun | tprg | Heater E Time Program Sun (True/False per hour of the day)
+| heatpump/hewalex/Command/HeaterETimeProgramSun | tprg | Heater E Time Program Sun (True/False per hour of the day)
+| heatpump/hewalex/HeaterPEnabled | bool | Heater P Enabled (True/False)
+| heatpump/hewalex/Command/HeaterPEnabled | bool | Heater P Enabled (True/False)
+| heatpump/hewalex/HeaterPHPONTemp | te10 | Heater P water temp when HP ON (45.0)
+| heatpump/hewalex/Command/HeaterPHPONTemp | te10 | Heater P water temp when HP ON (45.0)
+| heatpump/hewalex/HeaterPHPOFFTemp | te10 | Heater P water temp when HP OFF (55.0)
+| heatpump/hewalex/Command/HeaterPHPOFFTemp | te10 | Heater P water temp when HP OFF (55.0)
+| heatpump/hewalex/HeaterPBlocked | bool | Heater P blocked when HP ON? (True/False)
+| heatpump/hewalex/Command/HeaterPBlocked | bool | Heater P blocked when HP ON? (True/False)
+| heatpump/hewalex/HeaterPTimeProgramM-F | tprg | Heater P Time Program M-F (True/False per hour of the day)
+| heatpump/hewalex/Command/HeaterPTimeProgramM-F | tprg | Heater P Time Program M-F (True/False per hour of the day)
+| heatpump/hewalex/HeaterPTimeProgramSat | tprg | Heater P Time Program Sat (True/False per hour of the day)
+| heatpump/hewalex/Command/HeaterPTimeProgramSat | tprg | Heater P Time Program Sat (True/False per hour of the day)
+| heatpump/hewalex/HeaterPTimeProgramSun | tprg | Heater P Time Program Sun (True/False per hour of the day)
+| heatpump/hewalex/Command/HeaterPTimeProgramSun | tprg | Heater P Time Program Sun (True/False per hour of the day)
+| heatpump/hewalex/CirculationPumpMinTemp | te10 | Circulation Pump Min Temp
+| heatpump/hewalex/Command/CirculationPumpMinTemp | te10 | Circulation Pump Min Temp
+| heatpump/hewalex/CirculationPumpOperationMode | word | Circulation Pump Operation Mode (0=Continuous, 1=Interrupted)
+| heatpump/hewalex/Command/CirculationPumpOperationMode | word | Circulation Pump Operation Mode (0=Continuous, 1=Interrupted)
+| heatpump/hewalex/CirculationPumpTimeProgramM-F | tprg | Circulation Pump Time Program M-F (True/False per hour of the day)
+| heatpump/hewalex/Command/CirculationPumpTimeProgramM-F | tprg | Circulation Pump Time Program M-F (True/False per hour of the day)
+| heatpump/hewalex/CirculationPumpTimeProgramSat | tprg | Circulation Pump Time Program Sat (True/False per hour of the day)
+| heatpump/hewalex/Command/CirculationPumpTimeProgramSat | tprg | Circulation Pump Time Program Sat (True/False per hour of the day)
+| heatpump/hewalex/CirculationPumpTimeProgramSun | tprg | Circulation Pump Time Program Sun (True/False per hour of the day)
+| heatpump/hewalex/Command/CirculationPumpTimeProgramSun | tprg | Circulation Pump Time Program Sun (True/False per hour of the day)
+| heatpump/hewalex/BoilerPumpMaxTemp | te10 | Boiler Pump Max Temp (65.0)
+| heatpump/hewalex/Command/BoilerPumpMaxTemp | te10 | Boiler Pump Max Temp (65.0)
+| heatpump/hewalex/BoilerPumpMinTemp | te10 | Boiler Pump Min Temp (45.0)
+| heatpump/hewalex/Command/BoilerPumpMinTemp | te10 | Boiler Pump Min Temp (45.0)
+| heatpump/hewalex/BoilerPumpHysteresis | te10 | Boiler Pump Hysteresis (8.0)
+| heatpump/hewalex/Command/BoilerPumpHysteresis | te10 | Boiler Pump Hysteresis (8.0)
+| heatpump/hewalex/BoilerPumpPriority | bool | Boiler Pump Priority (True/False)
+| heatpump/hewalex/Command/BoilerPumpPriority | bool | Boiler Pump Priority (True/False)
+| heatpump/hewalex/AntiLegionellaEnabled | bool | Anti-Legionella Enabled (True/False)
+| heatpump/hewalex/Command/AntiLegionellaEnabled | bool | Anti-Legionella Enabled (True/False)
+| heatpump/hewalex/AntiLegionellaUseHeaterE | bool | Anti-Legionella Use Heater E (True/False)
+| heatpump/hewalex/Command/AntiLegionellaUseHeaterE | bool | Anti-Legionella Use Heater E (True/False)
+| heatpump/hewalex/AntiLegionellaUseHeaterP | bool | Anti-Legionella Use Heater P (True/False)
+| heatpump/hewalex/Command/AntiLegionellaUseHeaterP | bool | Anti-Legionella Use Heater P (True/False)
+| heatpump/hewalex/ExtControllerHPOFF | bool | Ext Controller HP OFF (True/False)
+| heatpump/hewalex/Command/ExtControllerHPOFF | bool | Ext Controller HP OFF (True/False)
+| heatpump/hewalex/ExtControllerHeaterEOFF | bool | Ext Controller Heater E OFF (True/False)
+| heatpump/hewalex/Command/ExtControllerHeaterEOFF | bool | Ext Controller Heater E OFF (True/False)
+| heatpump/hewalex/ExtControllerPumpFOFF | bool | Ext Controller Pump F OFF (True/False)
+| heatpump/hewalex/Command/ExtControllerPumpFOFF | bool | Ext Controller Pump F OFF (True/False)
+| heatpump/hewalex/ExtControllerHeaterPOFF | bool | Ext Controller Heater P OFF (True/False)
+| heatpump/hewalex/Command/ExtControllerHeaterPOFF | bool | Ext Controller Heater P OFF (True/False)
 
 ### Examples
 Turn off heat pump
@@ -317,6 +430,7 @@ etc. etc.
 ## Acknowledgements
 
 Based on
+* https://github.com/Chibald/Hewalex2Mqtt
 * https://github.com/mvdklip/Domoticz-Hewalex
 * https://www.elektroda.pl/rtvforum/topic3499254.html 
 * https://github.com/aelias-eu/hewalex-geco-protocol

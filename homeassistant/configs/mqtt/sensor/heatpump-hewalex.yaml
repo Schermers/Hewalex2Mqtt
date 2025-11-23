@@ -1,0 +1,313 @@
+# Hewalex heatpump sensors
+- name: Date
+  state_topic: heatpump/hewalex/date
+  unique_id: heatpump_hewalex_date
+  icon: mdi:calendar
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Time
+  state_topic: heatpump/hewalex/time
+  unique_id: heatpump_hewalex_time
+  icon: mdi:clock
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: "T1 Ambient Temp"
+  state_topic: heatpump/hewalex/T1
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  icon: mdi:thermometer
+  unique_id: hewalex_heatpump_t1
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Hewalex Heatpump"
+- name: "T2 Bottom Tank Temp"
+  state_topic: heatpump/hewalex/T2
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  icon: mdi:thermometer
+  unique_id: hewalex_heatpump_t2
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: "T3 Top Tank Temp"
+  state_topic: heatpump/hewalex/T3
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  icon: mdi:thermometer
+  unique_id: hewalex_heatpump_t3
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: "T6 HP Water Inlet Temp"
+  state_topic: heatpump/hewalex/T6
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  icon: mdi:thermometer
+  unique_id: hewalex_heatpump_t6
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: "T7 HP Water Outlet Temp"
+  state_topic: heatpump/hewalex/T7
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  icon: mdi:thermometer
+  unique_id: hewalex_heatpump_t7
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: "T8 HP Evaporator Temp"
+  state_topic: heatpump/hewalex/T8
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  icon: mdi:thermometer
+  unique_id: hewalex_heatpump_t8
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: "T9 HP Pre Compressor Temp"
+  state_topic: heatpump/hewalex/T9
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  icon: mdi:thermometer
+  unique_id: hewalex_heatpump_t9
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: "T10 HP Post Compressor Temp"
+  state_topic: heatpump/hewalex/T10
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  icon: mdi:thermometer
+  unique_id: hewalex_heatpump_t10
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: "HP Temp Setting"
+  state_topic: heatpump/hewalex/TapWaterTemp
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  icon: mdi:thermometer
+  unique_id: hewalex_heatpump_tapwater
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: "HP Status"
+  state_topic: heatpump/hewalex/HeatPumpEnabled
+  unique_id: hewalex_heatpump_status
+  value_template: >-
+    {% if value == "True" %}
+        On
+    {% else %}
+        Off
+    {% endif %}
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: "HP Hysteresis"
+  state_topic: heatpump/hewalex/TapWaterHysteresis
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  icon: mdi:thermometer
+  unique_id: hewalex_heatpump_hysteresis
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: "HP WaterPumpON Pump"
+  state_topic: heatpump/hewalex/WaterPumpON
+  unique_id: hewalex_heatpump_waterpump
+  value_template: >-
+    {% if value == "True" %}
+        On
+    {% else %}
+        Off
+    {% endif %}
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: "HP Fan"
+  state_topic: heatpump/hewalex/FanON
+  unique_id: hewalex_heatpump_fan
+  value_template: >-
+    {% if value == "True" %}
+        On
+    {% else %}
+        Off
+    {% endif %}
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+- name: "HP Expansion Valve"
+  state_topic: heatpump/hewalex/EV1
+  unit_of_measurement: "-/-"
+  unique_id: hewalex_heatpump_ev1
+  device:
+    identifiers:
+      - "heatpump_hewalex"
+    name: "Heatpump Hewalex"
+    
+- name: 0 when available for operation, 2 when disabled through register 304, 64 when low COP, 32 when just stopped and waiting to be restarted
+  state_topic: heatpump/hewalex/WaitingStatus
+  unique_id: heatpump_hewalex_waitingstatus
+  state_class: measurement
+  icon: mdi:timer-pause
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Timer counting down to 0 when just stopped and waiting to be available for operation again
+  state_topic: heatpump/hewalex/WaitingTimer
+  unique_id: heatpump_hewalex_waitingtimer
+  state_class: measurement
+  icon: mdi:timer-pause
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Installation Scheme (1-9)
+  #command_topic: heatpump/hewalex/Command/InstallationScheme
+  state_topic: heatpump/hewalex/InstallationScheme
+  unique_id: heatpump_hewalex_installationscheme
+  icon: mdi:format-list-numbered-rtl
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Time Program HP M-F (True/False per hour of the day)
+  #command_topic: heatpump/hewalex/Command/TimeProgramHPM-F
+  state_topic: heatpump/hewalex/TimeProgramHPM-F
+  unique_id: heatpump_hewalex_timeprogramhpm-f
+  state_class: measurement
+  icon: mdi:calendar-week
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Time Program HP Sat (True/False per hour of the day)
+  #command_topic: heatpump/hewalex/Command/TimeProgramHPSat
+  state_topic: heatpump/hewalex/TimeProgramHPSat
+  unique_id: heatpump_hewalex_timeprogramhpsat
+  state_class: measurement
+  icon: mdi:calendar-weekend
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Time Program HP Sun (True/False per hour of the day)
+  #command_topic: heatpump/hewalex/Command/TimeProgramHPSun
+  state_topic: heatpump/hewalex/TimeProgramHPSun
+  unique_id: heatpump_hewalex_timeprogramhpsun
+  state_class: measurement
+  icon: mdi:calendar-weekend
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Heater E Time Program M-F (True/False per hour of the day)
+  #command_topic: heatpump/hewalex/Command/HeaterETimeProgramM-F
+  state_topic: heatpump/hewalex/HeaterETimeProgramM-F
+  unique_id: heatpump_hewalex_heateretimeprogramm-f
+  icon: mdi:calendar-week
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Heater E Time Program Sat (True/False per hour of the day)
+  #command_topic: heatpump/hewalex/Command/HeaterETimeProgramSat
+  state_topic: heatpump/hewalex/HeaterETimeProgramSat
+  unique_id: heatpump_hewalex_heateretimeprogramsat
+  icon: mdi:calendar-weekend
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Heater E Time Program Sun (True/False per hour of the day)
+  #command_topic: heatpump/hewalex/Command/HeaterETimeProgramSun
+  state_topic: heatpump/hewalex/HeaterETimeProgramSun
+  unique_id: heatpump_hewalex_heateretimeprogramsun
+  icon: mdi:calendar-weekend
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Heater P Time Program M-F (True/False per hour of the day)
+  #command_topic: heatpump/hewalex/Command/HeaterPTimeProgramM-F
+  state_topic: heatpump/hewalex/HeaterPTimeProgramM-F
+  unique_id: heatpump_hewalex_heaterptimeprogramm-f
+  icon: mdi:calendar-week
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Heater P Time Program Sat (True/False per hour of the day)
+  #command_topic: heatpump/hewalex/Command/HeaterPTimeProgramSat
+  state_topic: heatpump/hewalex/HeaterPTimeProgramSat
+  unique_id: heatpump_hewalex_heaterptimeprogramsat
+  icon: mdi:calendar-weekend
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Heater P Time Program Sun (True/False per hour of the day)
+  #command_topic: heatpump/hewalex/Command/HeaterPTimeProgramSun
+  state_topic: heatpump/hewalex/HeaterPTimeProgramSun
+  unique_id: heatpump_hewalex_heaterptimeprogramsun
+  icon: mdi:calendar-weekend
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Circulation Pump Time Program M-F (True/False per hour of the day)
+  #command_topic: heatpump/hewalex/Command/CirculationPumpTimeProgramM-F
+  state_topic: heatpump/hewalex/CirculationPumpTimeProgramM-F
+  unique_id: heatpump_hewalex_circulationpumptimeprogramm-f
+  icon: mdi:calendar-week
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Circulation Pump Time Program Sat (True/False per hour of the day)
+  #command_topic: heatpump/hewalex/Command/CirculationPumpTimeProgramSat
+  state_topic: heatpump/hewalex/CirculationPumpTimeProgramSat
+  unique_id: heatpump_hewalex_circulationpumptimeprogramsat
+  icon: mdi:calendar-weekend
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex
+- name: Circulation Pump Time Program Sun (True/False per hour of the day)
+  #command_topic: heatpump/hewalex/Command/CirculationPumpTimeProgramSun
+  state_topic: heatpump/hewalex/CirculationPumpTimeProgramSun
+  unique_id: heatpump_hewalex_circulationpumptimeprogramsun
+  icon: mdi:calendar-weekend
+  device:
+    name: Hewalex Heatpump
+    identifiers:
+    - heatpump_hewalex

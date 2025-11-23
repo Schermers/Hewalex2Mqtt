@@ -2,7 +2,7 @@ services:
   hewalex2mqtt:
     container_name: hewalex2mqtt
     build:
-      context: /
+      context: ./hewalex2mqtt
       network: host
     restart: unless-stopped
     network_mode: host
