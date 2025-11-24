@@ -57,8 +57,8 @@ It is probably wise to assign static ip-address. Take note of this.
 On your existing controller, verify the hardware and software IDs required for the setup. The integration won’t work if these values are wrong.
 In my case, the system only came online after correcting devHardId to 5. For most users this value is typically 2, but don’t assume. Check your own device and set it accordingly.
 
-![Logical Address setting](media\RS485_LogicalAddress.png "Logical Address setting")
-![Physical Address setting](media\RS485_PhysicalAddress.png "Physical Address setting")
+![Logical Address setting](media/RS485_LogicalAddress.png "Logical Address setting")
+![Physical Address setting](media/RS485_PhysicalAddress.png "Physical Address setting")
 
 
 ### Solar pumps (ZPS) setup
