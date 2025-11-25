@@ -1,4 +1,4 @@
-- name: Enable Heatpump
+- name: Enable Heat Pump
   command_topic: heatpump/hewalex/Command/HeatPumpEnabled
   state_topic: heatpump/hewalex/HeatPumpEnabled
   payload_on: True
