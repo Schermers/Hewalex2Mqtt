@@ -2,6 +2,7 @@ import os
 import threading
 import configparser
 import serial
+import time
 from hewalex_geco.devices import PCWU, ZPS
 import paho.mqtt.client as mqtt
 import logging
@@ -161,10 +162,33 @@ def on_message_mqtt(client, userdata, message):
         if topic.startswith(base) and '/Command/' in topic[len(base):]:
             command = topic.split('/')[-1]
             logger.info(f'Received PCWU command {topic}')
-            writePcwuConfig(command, payload)
-            if _Update_Interval > 5:
-                readPCWU()
-                readPcwuConfig()
+            # special control topic to restart the container via docker (exit process)
+            # topic: restart_hewalex2mqtt
+            # payload: True (case-insensitive), or 1/on/yes
+            if command == 'RestartHewalex2Mqtt':
+                val = payload.strip().lower()
+                if val in ('true', '1', 'on', 'yes'):
+                    logger.warning('Restart command received via MQTT (%s). Shutting down process to allow container restart.', payload)
+                    try:
+                        # attempt a clean disconnect and stop the client loop
+                        try:
+                            client.disconnect()
+                        except Exception:
+                            logger.debug('Failed to disconnect client cleanly before exit', exc_info=True)
+                        try:
+                            client.loop_stop()
+                        except Exception:
+                            logger.debug('Failed to stop client loop cleanly before exit', exc_info=True)
+                        # give a moment for disconnect to propagate
+                        time.sleep(0.25)
+                    finally:
+                        # ensure full process termination so Docker can restart
+                        os._exit(0)
+            else:
+                writePcwuConfig(command, payload)
+                if _Update_Interval > 5:
+                    readPCWU()
+                    readPcwuConfig()
         else:
             logger.info(f'Cannot process message on topic {topic}')
 

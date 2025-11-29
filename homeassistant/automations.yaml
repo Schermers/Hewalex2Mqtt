@@ -1,0 +1,16 @@
+- id: '1764411325588'
+  alias: Hewalex | Reload hewalex2mqtt
+  description: 'Reload hewalex2mqtt by publishing to the restart topic'
+  triggers:
+  - trigger: homeassistant
+    event: start
+  conditions: []
+  actions:
+  - action: mqtt.publish
+    metadata: {}
+    data:
+      evaluate_payload: false
+      qos: '1'
+      topic: heatpump/hewalex/Command/RestartHewalex2Mqtt
+      payload: 'True'
+  mode: single
